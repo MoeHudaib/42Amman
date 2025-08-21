@@ -1,0 +1,104 @@
+				 VM CONFIGURATION & SSH SETUP
+ 				 VIRTUALBOX / HOST SETUP
+ 
+ `VBoxManage list vms`                                             								 Lists all registered VirtualBox VMs on your system.                        
+
+ `VBoxManage showvminfo "YOURVM"`                                  					 Displays detailed info about your VM, including NAT port forwarding rules. 
+
+ `VBoxManage modifyvm "YOURVM" --natpf1 "ssh4242,tcp,,2222,,4242"` 			 Adds a NAT port forwarding rule: host port 2222 → guest port 4242.        
+
+ `VBoxManage modifyvm "YOURVM" --natpf1 delete "ssh4242"`         				 Deletes an existing NAT port forwarding rule by name.                      
+
+ Set network adapter to **NAT**                                    							Ensures port forwarding will work.                                         
+
+ Add port forwarding rule (GUI)                                    								 Links host port 2222 to guest port 4242 via TCP.                           
+
+
+
+ 					Inside the Debian VM
+				 SYSTEM & NETWORK SETUP
+
+
+ `sudo ss -tuln | grep 4242`    			 Shows if SSH is listening on port 4242 (should return listening sockets). 
+
+ `sudo systemctl status ssh`    		 	 Shows whether the SSH server is running.                                                                                   
+
+ `sudo systemctl restart ssh`     			 Restarts the SSH server (after config changes).                                                                            
+
+ `ip a`                          						 Lists all network interfaces and IP addresses.                                                                             
+
+ `passwd`                         					 Changes the current user's password.                                                                                    
+
+ `whoami`                         					 Displays the current username.                                                                                            
+
+ `cat /etc/os-release`            				 Shows the OS version and distro info.                                                                                   
+
+ `sudo poweroff` or `sudo reboot` 			 Shuts down or reboots the VM safely.                                                                                       
+
+
+
+
+					 SSH CONFIGURATION     
+                                   
+
+ `sudo nano /etc/ssh/sshd_config`                  		 Opens SSH config file to change port, root login, etc.         
+
+ Edit: `Port 4242`                                 				 Changes SSH listening port from default 22 to 4242.            
+
+ Edit: `PermitRootLogin no` or `prohibit-password` 	 Disables root login via SSH for security.                      
+
+ Edit: `PasswordAuthentication yes`                		 Enables password login (if needed).                            
+ 
+ `sudo nano` instead of `chmod`                    			 Correct way to edit protected system files.                    
+
+
+
+				On the Host Machine
+				SSH & Port Forwarding Test
+
+
+ `ssh -p 2222 user@localhost`    							Connects from host to guest VM via port forwarding.         
+
+`ssh -v -p 2222 user@localhost` 							Runs SSH with verbose output for debugging.                 
+
+ `nc -vz localhost 2222`         								Tests if port 2222 is open and accepting connections.       
+
+`telnet localhost 2222`         								Alternative port connectivity test (if `telnet` installed). 
+
+`sudo lsof -i :2222`            									Shows processes listening on host port 2222.                
+
+
+
+nano ~/.bashrc  "Go to the bottom and add this line:"  export PATH=$PATH:/usr/sbin  "Apply the change now:"   source ~/.bashrc
+
+
+			To tail the SSH logs live, run this on your Debian VM:
+
+						sudo journalctl -u ssh -f
+
+
+			To see recent SSH log entries without following, use:
+						sudo journalctl -u ssh --no-pager
+
+			To search for ufw program
+						sudo find / -type f -name ufw 2>/dev/null
+
+
+			deny incoming: Blocks all incoming connections (good security default)
+			allow outgoing: Allows the VM to connect out (e.g., internet, SSH from VM)
+
+						sudo ufw default deny incoming
+						sudo ufw default allow outgoing
+
+			SSH on port 4242, allow port 4242 
+						sudo ufw allow 4242/tcp
+						
+			to enable firewall :
+						sudo ufw enable
+			
+			to check status of ufw :
+						sudo ufw status
+						
+			to make a .sh file run like ./this
+						chmod +x monitor_resources.sh
+
